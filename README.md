@@ -1,4 +1,5 @@
 # L'Atelier LL(1) — Grammar Analyzer & Predictive Parser
+### Compiler Design Project — Group 14
 
 An interactive compiler design studio for Context-Free Grammars (CFG), FIRST & FOLLOW derivations, predictive LL(1) parsing tables, derivation step traces, and visual syntax trees.
 
@@ -22,3 +23,4 @@ python -m http.server 8000
 npx serve
 ```
 Then visit `http://localhost:8000`.
+
