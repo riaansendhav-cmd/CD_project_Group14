@@ -1,0 +1,7 @@
+
+S -> id ( A )
+A -> id B | eps
+B -> , id B | eps
+
+
+id ( id , id )

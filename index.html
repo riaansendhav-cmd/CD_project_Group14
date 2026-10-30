@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>L'Atelier LL(1) — Grammar Analyzer & Predictive Parser</title>
+  <meta name="description" content="A calm, airy and elegant interactive studio for LL(1) Context-Free Grammars, FIRST & FOLLOW derivations, predictive parsing tables, and syntax trees." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="editorial-body">
+
+  <!-- ─── 1. BOUTIQUE TOP NAVIGATION ─── -->
+  <header id="app-header" class="boutique-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <span class="brand-eyebrow">COMPILER ATELIER · EST. 2026</span>
+        <h1 class="brand-title">L'Atelier <em>LL(1)</em></h1>
+      </div>
+
+      <nav class="header-nav" aria-label="Main Navigation">
+        <a href="#workbench-section" class="nav-link">ATELIER</a>
+        <a href="#features-section" class="nav-link">OUR FEATURES</a>
+        <a href="#workbench-section" onclick="switchTab('table')" class="nav-link">PARSE TABLE</a>
+        <a href="#workbench-section" onclick="switchTab('tree')" class="nav-link">DERIVATION TREE</a>
+      </nav>
+
+      <div class="header-status-wrap">
+        <div id="ll1-status-badge" class="status-badge status-idle">
+          <span class="status-dot"></span>
+          <span id="status-text">Awaiting Grammar</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── 2. EDITORIAL HERO BANNER ─── -->
+  <section class="hero-banner">
+    <div class="hero-container">
+      <div class="hero-arch-card">
+        <div class="hero-arch-inner">
+          <span class="hero-eyebrow">THIS IS WHAT WE DO</span>
+          <h2 class="hero-title">The Pure Art of<br><em>Syntax &amp; Parsing</em></h2>
+          <p class="hero-description">
+            A quiet, serene environment dedicated to the study of Context-Free Grammars. 
+            Compute FIRST &amp; FOLLOW sets with clarity, inspect predictive LL(1) parse tables, 
+            and trace derivations through delicate, arch-framed visual trees.
+          </p>
+          <div class="hero-actions">
+            <a href="#workbench-section" class="btn-boutique">EXPLORE WORKBENCH &nbsp;↓</a>
+            <button id="btn-hero-sample" class="btn-boutique-outline" onclick="document.getElementById('btn-load-sample').click()">VIEW PRESET EXAMPLES</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlapping Inverted Arch Panel for depth -->
+      <div class="inverted-arch-panel" aria-hidden="true">
+        <div class="inverted-arch-line"></div>
+        <div class="inverted-arch-decor">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 C14 4 6 12 6 22 C6 34 24 44 24 44 C24 44 42 34 42 22 C42 12 34 4 24 4 Z" stroke="#1C1512" stroke-width="1.2" fill="none"/>
+            <circle cx="24" cy="20" r="6" stroke="#B06A2C" stroke-width="1" fill="none"/>
+            <line x1="24" y1="26" x2="24" y2="38" stroke="#1C1512" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 3. WORKBENCH & ANALYSIS SECTION (Alternate White Section) ─── -->
+  <section id="workbench-section" class="section-white">
+    <div class="section-container">
+
+      <div class="section-heading-centered">
+        <span class="section-eyebrow">PARSING TOOLKIT</span>
+        <h2 class="section-title">The Interactive Atelier</h2>
+        <div class="heading-divider-line"></div>
+        <p class="section-subtitle">Compose grammar productions on the left and witness real-time predictive derivations on the right.</p>
+      </div>
+
+      <div id="app-main" class="workbench-grid">
+
+        <!-- LEFT WORKBENCH COLUMN -->
+        <aside id="left-panel" class="workbench-aside">
+
+          <!-- Grammar Input Card (Arch-topped container) -->
+          <div class="arch-card" id="grammar-card">
+            <div class="arch-card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">GRAMMAR SPECIFICATION</span>
+                <h3 class="card-title">Production Rules</h3>
+              </div>
+              <div class="card-actions">
+                <button id="btn-load-sample" class="mini-btn-arch">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  PRESETS
+                </button>
+                <button id="btn-upload" class="mini-btn-arch">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  IMPORT
+                </button>
+                <input type="file" id="file-input" accept=".txt,.cfg,.g" style="display:none" />
+              </div>
+            </div>
+
+            <div class="grammar-hint-strip">
+              <code>S → a B | ε</code> &nbsp;·&nbsp; Use <kbd>-&gt;</kbd> &nbsp;·&nbsp; <kbd>eps</kbd> for ε &nbsp;·&nbsp; <kbd>|</kbd> for alternatives
+            </div>
+
+            <div class="textarea-arch-wrapper">
+              <div id="line-numbers" aria-hidden="true"></div>
+              <textarea id="grammar-input" spellcheck="false" autocorrect="off" autocapitalize="off"
+                placeholder="E -> T E'&#10;E' -> + T E' | eps&#10;T -> F T'&#10;T' -> * F T' | eps&#10;F -> ( E ) | id"
+                aria-label="Grammar rules input"></textarea>
+            </div>
+
+            <div class="card-footer-arch">
+              <button id="btn-analyze" class="btn-boutique-action">
+                ANALYZE GRAMMAR &nbsp;→
+              </button>
+              <button id="btn-reset" class="btn-boutique-secondary" title="Reset to default grammar">
+                RESET
+              </button>
+            </div>
+          </div>
+
+          <!-- Parse String Card -->
+          <div class="arch-card" id="parse-card">
+            <div class="arch-card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">INPUT EVALUATION</span>
+                <h3 class="card-title">Parse Sentence</h3>
+              </div>
+            </div>
+            <div class="parse-input-row">
+              <input type="text" id="parse-string-input" placeholder="id + id * id" aria-label="Input sentence to parse" />
+              <button id="btn-parse" class="btn-boutique-action" disabled>
+                PARSE &nbsp;→
+              </button>
+            </div>
+            <p class="parse-hint-text">Separate tokens by spaces. End symbol <code>$</code> is automatically appended.</p>
+          </div>
+
+          <!-- Grammar Refactoring Card -->
+          <div class="arch-card" id="transform-card">
+            <div class="arch-card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">GRAMMAR REFACTORING</span>
+                <h3 class="card-title">Transformations</h3>
+              </div>
+            </div>
+            <div class="transform-buttons-list">
+              <button id="btn-elim-lr" class="btn-transform-arch" disabled>
+                <span>ELIMINATE LEFT RECURSION</span>
+                <span class="arrow-symbol">→</span>
+              </button>
+              <button id="btn-left-factor" class="btn-transform-arch" disabled>
+                <span>APPLY LEFT FACTORING</span>
+                <span class="arrow-symbol">→</span>
+              </button>
+            </div>
+            <div id="transform-result" class="transform-result-box" style="display:none"></div>
+          </div>
+
+        </aside>
+
+        <!-- RIGHT STUDIO DASHBOARD -->
+        <section id="right-panel" class="workbench-main">
+
+          <!-- Arch-Styled Navigation Tabs -->
+          <div class="tab-bar-arch" role="tablist">
+            <button class="tab-btn-arch active" data-tab="overview" role="tab" aria-selected="true">
+              <span class="tab-dot"></span>
+              <span>STUDIO DASHBOARD</span>
+            </button>
+            <button class="tab-btn-arch" data-tab="first" role="tab" aria-selected="false">
+              <span>FIRST SETS</span>
+            </button>
+            <button class="tab-btn-arch" data-tab="follow" role="tab" aria-selected="false">
+              <span>FOLLOW SETS</span>
+            </button>
+            <button class="tab-btn-arch" data-tab="table" role="tab" aria-selected="false">
+              <span>PARSE TABLE</span>
+            </button>
+            <button class="tab-btn-arch" data-tab="trace" role="tab" aria-selected="false">
+              <span>PARSE TRACE</span>
+            </button>
+            <button class="tab-btn-arch" data-tab="tree" role="tab" aria-selected="false">
+              <span>DERIVATION TREE</span>
+            </button>
+          </div>
+
+          <div id="tab-content" class="tab-content-area">
+
+            <!-- 1. MULTI-PANEL STUDIO DASHBOARD (All-in-One View) -->
+            <div class="tab-pane active" id="pane-overview">
+
+              <div id="dashboard-empty" class="dashboard-empty-state">
+                <div class="empty-arch-frame">
+                  <span class="card-eyebrow">PARSER STATUS</span>
+                  <h3 class="empty-title">Awaiting Grammar Input</h3>
+                  <p class="empty-text">Enter your productions in the atelier on the left and select <strong>Analyze Grammar</strong> to compute sets and verify determinism.</p>
+                </div>
+              </div>
+
+              <div id="dashboard-content" style="display:none">
+                <!-- Top Summary Metrics with Arch Caps -->
+                <div class="dashboard-block">
+                  <div class="block-header">
+                    <span class="card-eyebrow">DERIVATION SUMMARY</span>
+                    <h3 class="block-title">Grammar Metrics</h3>
+                  </div>
+                  <div class="stats-arch-grid" id="stats-grid"></div>
+                </div>
+
+                <!-- Side-by-Side Dual Sets Panels -->
+                <div class="dashboard-block">
+                  <div class="sets-arch-grid">
+                    <!-- FIRST Sets Panel -->
+                    <div class="arch-subcard">
+                      <div class="arch-subcard-header">
+                        <div>
+                          <span class="card-eyebrow">FIRST(α) SETS</span>
+                          <h4 class="subcard-title">Initial Terminals</h4>
+                        </div>
+                        <button class="export-link export-btn" data-export="first">EXPORT CSV ↓</button>
+                      </div>
+                      <div id="dashboard-first-container" class="arch-table-scroll"></div>
+                    </div>
+
+                    <!-- FOLLOW Sets Panel -->
+                    <div class="arch-subcard">
+                      <div class="arch-subcard-header">
+                        <div>
+                          <span class="card-eyebrow">FOLLOW(A) SETS</span>
+                          <h4 class="subcard-title">Following Terminals</h4>
+                        </div>
+                        <button class="export-link export-btn" data-export="follow">EXPORT CSV ↓</button>
+                      </div>
+                      <div id="dashboard-follow-container" class="arch-table-scroll"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Parse Table Section on Dashboard -->
+                <div class="dashboard-block">
+                  <div class="arch-subcard">
+                    <div class="arch-subcard-header">
+                      <div>
+                        <span class="card-eyebrow">PREDICTIVE LOOKAHEAD</span>
+                        <h4 class="subcard-title">LL(1) Parse Table M[A, a]</h4>
+                      </div>
+                      <button class="export-link export-btn" data-export="table">EXPORT CSV ↓</button>
+                    </div>
+                    <div id="dashboard-ll1-verdict" class="verdict-pill"></div>
+                    <div id="dashboard-table-container" class="table-scroll arch-table-scroll"></div>
+                  </div>
+                </div>
+
+                <!-- Live Parse Result Snippet on Dashboard -->
+                <div class="dashboard-block" id="dashboard-parse-section" style="display:none">
+                  <div class="arch-subcard highlight-subcard">
+                    <div class="arch-subcard-header">
+                      <div>
+                        <span class="card-eyebrow">SENTENCE EVALUATION</span>
+                        <h4 class="subcard-title">Parse Execution Result</h4>
+                      </div>
+                      <div class="card-actions">
+                        <button class="mini-btn-arch" onclick="switchTab('trace')">STEP TRACE →</button>
+                        <button class="mini-btn-arch" onclick="switchTab('tree')">TREE VIEW →</button>
+                      </div>
+                    </div>
+                    <div id="dashboard-parse-banner"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 2. FIRST SETS (Deep Dive Tab) -->
+            <div class="tab-pane" id="pane-first">
+              <div class="pane-editorial-header">
+                <div>
+                  <span class="card-eyebrow">INITIAL TERMINALS</span>
+                  <h3 class="pane-title">First Sets Table</h3>
+                </div>
+                <button class="export-link export-btn" data-export="first">EXPORT CSV ↓</button>
+              </div>
+              <div class="empty-state" id="first-empty"><p>Analyze a grammar to compute FIRST sets.</p></div>
+              <div id="first-content" style="display:none">
+                <div class="editorial-set-description">
+                  <strong>FIRST(α)</strong> represents the set of terminal symbols that can begin any string derived from α. If α derives the empty string, then ε is contained within FIRST(α).
+                </div>
+                <div id="first-table-container"></div>
+              </div>
+            </div>
+
+            <!-- 3. FOLLOW SETS (Deep Dive Tab) -->
+            <div class="tab-pane" id="pane-follow">
+              <div class="pane-editorial-header">
+                <div>
+                  <span class="card-eyebrow">SENTENTIAL NEIGHBORS</span>
+                  <h3 class="pane-title">Follow Sets Table</h3>
+                </div>
+                <button class="export-link export-btn" data-export="follow">EXPORT CSV ↓</button>
+              </div>
+              <div class="empty-state" id="follow-empty"><p>Analyze a grammar to compute FOLLOW sets.</p></div>
+              <div id="follow-content" style="display:none">
+                <div class="editorial-set-description">
+                  <strong>FOLLOW(A)</strong> represents the set of terminal symbols that may appear immediately to the right of non-terminal A in any sentential form. The endmarker $ is always a member of FOLLOW for the start symbol.
+                </div>
+                <div id="follow-table-container"></div>
+              </div>
+            </div>
+
+            <!-- 4. PARSE TABLE (Deep Dive Tab) -->
+            <div class="tab-pane" id="pane-table">
+              <div class="pane-editorial-header">
+                <div>
+                  <span class="card-eyebrow">PREDICTIVE TRANSITION MATRIX</span>
+                  <h3 class="pane-title">LL(1) Parse Table</h3>
+                </div>
+                <button class="export-link export-btn" data-export="table">EXPORT CSV ↓</button>
+              </div>
+              <div class="empty-state" id="table-empty"><p>Analyze a grammar to construct the parse table.</p></div>
+              <div id="table-content" style="display:none">
+                <div id="ll1-verdict" class="verdict-pill"></div>
+                <div id="parse-table-container" class="table-scroll arch-table-scroll"></div>
+              </div>
+            </div>
+
+            <!-- 5. PARSE TRACE (Step Simulator) -->
+            <div class="tab-pane" id="pane-trace">
+              <div class="pane-editorial-header">
+                <div>
+                  <span class="card-eyebrow">PARSING SIMULATION</span>
+                  <h3 class="pane-title">Step-by-Step Parse Trace</h3>
+                </div>
+                <button class="export-link export-btn" data-export="trace">EXPORT CSV ↓</button>
+              </div>
+              <div class="empty-state" id="trace-empty"><p>Enter an input sentence and select <strong>Parse</strong> to trace the execution steps.</p></div>
+              <div id="trace-content" style="display:none">
+                <div id="parse-result-banner" class="verdict-pill"></div>
+                <div class="trace-controls-arch">
+                  <button id="btn-trace-prev" class="btn-trace-arch" disabled>← PREV STEP</button>
+                  <span id="trace-counter" class="trace-counter-arch">Step 0 / 0</span>
+                  <button id="btn-trace-next" class="btn-trace-arch" disabled>NEXT STEP →</button>
+                  <button id="btn-trace-play" class="btn-trace-play">
+                    <span id="play-label">AUTO PLAY</span>
+                  </button>
+                </div>
+                <div id="trace-visual" class="trace-visual-arch"></div>
+                <div id="trace-table-container" class="trace-table-wrapper"></div>
+              </div>
+            </div>
+
+            <!-- 6. PARSE TREE -->
+            <div class="tab-pane" id="pane-tree">
+              <div class="pane-editorial-header">
+                <div>
+                  <span class="card-eyebrow">SYNTAX DERIVATION</span>
+                  <h3 class="pane-title">Syntax Derivation Tree</h3>
+                </div>
+                <button id="btn-export-tree-svg" class="export-link">EXPORT SVG ↓</button>
+              </div>
+              <div class="empty-state" id="tree-empty"><p>Parse an accepted sentence to view the visual derivation tree.</p></div>
+              <div id="tree-content" style="display:none">
+                <div id="parse-tree-svg-container" class="parse-tree-arch-container"></div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 4. EDITORIAL FEATURE CARDS SECTION (ARCH SHAPES) ─── -->
+  <section id="features-section" class="section-blush">
+    <div class="section-container">
+      <div class="section-heading-centered">
+        <span class="section-eyebrow">PARSING TOOLKIT</span>
+        <h2 class="section-title">Our Features</h2>
+        <div class="heading-divider-line"></div>
+        <p class="section-subtitle">Every mathematical derivation rendered with calm symmetry and tactile clarity.</p>
+      </div>
+
+      <div class="features-arch-grid">
+        <!-- Feature Arch 1 -->
+        <article class="feature-arch-card">
+          <div class="feature-arch-top">
+            <div class="arch-line-art">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="16" stroke="#1C1512" stroke-width="1.2"/>
+                <path d="M12 28 C12 20 28 20 28 12" stroke="#B06A2C" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="20" cy="20" r="4" fill="#E6CDBA" stroke="#1C1512" stroke-width="1"/>
+              </svg>
+            </div>
+            <span class="arch-symbol">Σ &amp; Φ</span>
+          </div>
+          <div class="feature-arch-body">
+            <h3 class="feature-title">First &amp; Follow Sets</h3>
+            <p class="feature-text">Recursive computation of initial derivable terminals and contextual right-hand symbols with complete ε-handling.</p>
+            <a href="#workbench-section" onclick="switchTab('first')" class="arch-link">READ MORE</a>
+          </div>
+        </article>
+
+        <!-- Feature Arch 2 -->
+        <article class="feature-arch-card">
+          <div class="feature-arch-top">
+            <div class="arch-line-art">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <rect x="8" y="8" width="24" height="24" rx="4" stroke="#1C1512" stroke-width="1.2"/>
+                <line x1="8" y1="16" x2="32" y2="16" stroke="#1C1512" stroke-width="1"/>
+                <line x1="16" y1="8" x2="16" y2="32" stroke="#1C1512" stroke-width="1"/>
+                <circle cx="24" cy="24" r="3" fill="#8A9A7B"/>
+              </svg>
+            </div>
+            <span class="arch-symbol">M[A, a]</span>
+          </div>
+          <div class="feature-arch-body">
+            <h3 class="feature-title">Predictive Parse Table</h3>
+            <p class="feature-text">Two-dimensional lookup matrix with conflict highlighting, revealing grammar ambiguities and non-LL(1) multiple entries.</p>
+            <a href="#workbench-section" onclick="switchTab('table')" class="arch-link">READ MORE</a>
+          </div>
+        </article>
+
+        <!-- Feature Arch 3 -->
+        <article class="feature-arch-card">
+          <div class="feature-arch-top">
+            <div class="arch-line-art">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 6 L10 18 L30 18 Z" stroke="#1C1512" stroke-width="1.2" fill="none"/>
+                <path d="M20 18 L8 34 L32 34 Z" stroke="#B06A2C" stroke-width="1.2" fill="none"/>
+                <circle cx="20" cy="20" r="3" fill="#E6CDBA" stroke="#1C1512" stroke-width="1"/>
+              </svg>
+            </div>
+            <span class="arch-symbol">🌿</span>
+          </div>
+          <div class="feature-arch-body">
+            <h3 class="feature-title">Syntax Derivations</h3>
+            <p class="feature-text">Step through the pushdown stack and generate clean SVG derivation trees that capture the grammatical structure.</p>
+            <a href="#workbench-section" onclick="switchTab('tree')" class="arch-link">READ MORE</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 5. FINAL CALL-TO-ACTION ARCH BANNER ─── -->
+  <section class="section-cta">
+    <div class="cta-arch-container">
+      <div class="cta-arch-card">
+        <span class="cta-eyebrow">ATELIER ARCHIVES</span>
+        <h2 class="cta-title">See What's Popular</h2>
+        <p class="cta-text">
+          Load ready-made classical grammars — from standard arithmetic expressions to balanced brackets and conditionals.
+        </p>
+        <button class="btn-boutique" onclick="document.getElementById('btn-load-sample').click()">
+          EXPLORE PRESET GRAMMARS &nbsp;→
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 6. BOUTIQUE FOOTER ─── -->
+  <footer class="boutique-footer">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <h3 class="footer-logo">L'Atelier LL(1)</h3>
+        <p class="footer-tagline">Crafting formal language theory with serenity, quiet luxury, and architectural grace.</p>
+      </div>
+      <div class="footer-links">
+        <span class="footer-heading">NAVIGATION</span>
+        <a href="#workbench-section">Grammar Studio</a>
+        <a href="#workbench-section" onclick="switchTab('first')">First Sets</a>
+        <a href="#workbench-section" onclick="switchTab('follow')">Follow Sets</a>
+        <a href="#workbench-section" onclick="switchTab('table')">Parse Table</a>
+      </div>
+    </div>
+    <!-- Slightly darker peach strip at the very bottom -->
+    <div class="footer-bottom-strip">
+      <p>© 2026 L'Atelier LL(1) Grammar Analyzer &amp; Parser. All rights reserved. Designed in quiet elegance.</p>
+    </div>
+  </footer>
+
+  <!-- ─── 7. PRESET GRAMMARS MODAL (Arch Shaped Window) ─── -->
+  <div id="sample-modal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box-arch">
+      <div class="modal-arch-header">
+        <div>
+          <span class="modal-eyebrow">COLLECTION</span>
+          <h2 id="modal-title" class="modal-heading">Preset Grammars</h2>
+        </div>
+        <button id="modal-close" class="modal-close-btn" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+      <div id="sample-list" class="sample-list-arch"></div>
+    </div>
+  </div>
+
+  <script src="ll1.js"></script>
+</body>
+</html>
